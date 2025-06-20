@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hanes-Woolf Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.27.1/plotly.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1e1e2f;
+      margin: 0;
+      padding: 20px;
+      color: #f0f0f0;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      color: #66aaff;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #2b2b3d;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .intro, .explanation-box, .quiz-box {
+      background-color: #3a3a55;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    .intro { border-left: 5px solid #66aaff; }
+    .explanation-box { border-left: 5px solid #66aaff; }
+    .quiz-box { border-left: 5px solid #ffcc00; }
+    .button-bar {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .button-bar button {
+      background: #66aaff;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 40px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="intro-page">
+    <div class="button-bar">
+      <label for="theme-toggle">Toggle Theme:</label>
+      <select id="theme-toggle">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
+    </div>
+    <h1>Hanes-Woolf Visual Simulator</h1>
+    <div class="intro">
+      <p><strong>Understanding Hanes-Woolf Kinetics</strong></p>
+      <div style="background-color: #26263a; padding: 10px 15px; border-radius: 6px; margin: 10px 0; font-size: 1.1em;">
+        <strong>Hanes-Woolf Equation:</strong><br>
+        <code>[S]/v = ([S]/V<sub>max</sub>) + (K<sub>m</sub>/V<sub>max</sub>)</code><br>
+        <span style="font-size: 0.95em; color: #ccc;">This linear plot rearranges enzyme kinetics to reduce error from low substrate measurements.</span>
+      </div>
+      <p>In this plot:</p>
+      <ul>
+        <li><strong>x-axis:</strong> [S]</li>
+        <li><strong>y-axis:</strong> [S] / v</li>
+        <li><strong>Slope:</strong> 1 / V<sub>max</sub></li>
+        <li><strong>Y-intercept:</strong> K<sub>m</sub> / V<sub>max</sub></li>
+      </ul>
+    </div>
+    <div class="button-bar">
+      <button id="start-simulator">Go to Simulator</button>
+    </div>
+  </div>
+
+  <div class="container" id="simulator-page" style="display:none">
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+      <div style="flex: 1 1 300px;">
+        <label>V<sub>max</sub>: <span id="vmax-val">1</span></label>
+        <input type="range" id="vmax" min="0.1" max="10" value="1" step="0.1" />
+
+        <label>K<sub>m</sub>: <span id="km-val">0.5</span></label>
+        <input type="range" id="km" min="0.1" max="10" value="0.5" step="0.1" />
+
+        <div class="button-bar">
+          <button onclick="resetParameters()">Reset Parameters</button>
+        </div>
+      </div>
+
+      <div style="flex: 2 1 500px;">
+        <div id="graph" style="height: 280px;"></div>
+        <div class="explanation-box" id="explanation"></div>
+
+        <button id="toggle-quiz" style="margin-top: 15px; background-color: #ffcc00; color: #000; padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Show Quick Question</button>
+        <div class="quiz-box" id="quiz-box" style="display: none; margin-top: 10px;">
+          <strong>Quick Question:</strong><br>
+          What does the y-intercept of a Hanes-Woolf plot represent?<br>
+          <label><input type="radio" name="quiz1" value="Vmax"> Vmax</label><br>
+          <label><input type="radio" name="quiz1" value="Km/Vmax"> Km / Vmax</label><br>
+          <label><input type="radio" name="quiz1" value="Km"> Km</label>
+          <div id="quiz-feedback" style="margin-top: 8px; font-weight: bold;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="button-bar">
+      <button id="back-to-intro">Back to Introduction</button>
+    </div>
+    <div class="footer">&copy; Claire Price, 2025. All rights reserved.</div>
+  </div>
+
+  <script>
+    const themeToggle = document.getElementById("theme-toggle");
+    themeToggle.addEventListener("change", () => {
+      document.body.classList.toggle("light-theme", themeToggle.value === "light");
+    });
+
+    const introPage = document.getElementById("intro-page");
+    const simulatorPage = document.getElementById("simulator-page");
+    document.getElementById("start-simulator").addEventListener("click", () => {
+      introPage.style.display = "none";
+      simulatorPage.style.display = "block";
+      simulatorPage.scrollIntoView({ behavior: "smooth" });
+    });
+    document.getElementById("back-to-intro").addEventListener("click", () => {
+      simulatorPage.style.display = "none";
+      introPage.style.display = "block";
+      introPage.scrollIntoView({ behavior: "smooth" });
+    });
+
+    const vmaxSlider = document.getElementById("vmax");
+    const kmSlider = document.getElementById("km");
+    const vmaxVal = document.getElementById("vmax-val");
+    const kmVal = document.getElementById("km-val");
+    const explanation = document.getElementById("explanation");
+
+    const toggleQuiz = document.getElementById("toggle-quiz");
+    const quizBox = document.getElementById("quiz-box");
+    toggleQuiz.addEventListener("click", function () {
+      quizBox.style.display = quizBox.style.display === "none" ? "block" : "none";
+      toggleQuiz.textContent = quizBox.style.display === "none" ? "Show Quick Question" : "Hide Quick Question";
+    });
+
+    function michaelisMenten(S, Vmax, Km) {
+      return (Vmax * S) / (Km + S);
+    }
+
+    function resetParameters() {
+      vmaxSlider.value = 1;
+      kmSlider.value = 0.5;
+      updateGraph();
+    }
+
+    function updateGraph() {
+      const Vmax = parseFloat(vmaxSlider.value);
+      const Km = parseFloat(kmSlider.value);
+      vmaxVal.textContent = Vmax;
+      kmVal.textContent = Km;
+
+      const S_values = Array.from({ length: 100 }, (_, i) => (i + 1) * 0.2);
+      const v_values = S_values.map(S => michaelisMenten(S, Vmax, Km));
+      const S_over_v = v_values.map((v, i) => S_values[i] / v);
+
+      const annotations = [
+        {
+          x: 0,
+          y: Km / Vmax,
+          xref: 'x',
+          yref: 'y',
+          text: `y-intercept = Km/Vmax = ${(Km / Vmax).toFixed(2)}`,
+          showarrow: true,
+          arrowhead: 4,
+          ax: 0,
+          ay: -30
+        },
+        {
+          x: S_values[80],
+          y: S_values[80] / michaelisMenten(S_values[80], Vmax, Km),
+          xref: 'x',
+          yref: 'y',
+          text: `slope = 1/Vmax = ${(1 / Vmax).toFixed(2)}`,
+          showarrow: true,
+          arrowhead: 4,
+          ax: -50,
+          ay: -40
+        }
+      ];
+
+      Plotly.newPlot("graph", [{
+        x: S_values,
+        y: S_over_v,
+        type: 'scatter',
+        mode: 'lines+markers',
+        line: { width: 3 },
+        name: '[S]/v vs [S]'
+      }], {
+        margin: { t: 10 },
+        xaxis: { title: '[S]' },
+        yaxis: { title: '[S] / v' },
+        annotations: annotations,
+        responsive: true,
+        showlegend: true,
+        legend: { x: 1, xanchor: 'right', y: 1 },
+        hovermode: 'closest'
+      });
+
+      explanation.innerHTML = `
+        <p><strong>Hanes-Woolf Interpretation:</strong></p>
+        <ul>
+          <li><strong>Slope:</strong> 1 / V<sub>max</sub> = ${(1 / Vmax).toFixed(2)}</li>
+          <li><strong>Y-intercept:</strong> K<sub>m</sub> / V<sub>max</sub> = ${(Km / Vmax).toFixed(2)}</li>
+        </ul>
+        <p>This linearization spreads out low-[S] values and is often easier to interpret experimentally than other reciprocal plots.</p>
+      `;
+    }
+
+    vmaxSlider.addEventListener("input", updateGraph);
+    kmSlider.addEventListener("input", updateGraph);
+
+    updateGraph();
+
+    document.querySelectorAll('input[name="quiz1"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const feedback = document.getElementById("quiz-feedback");
+        if (radio.value === "Km/Vmax") {
+          feedback.textContent = "✅ Correct! The y-intercept is Km divided by Vmax.";
+          feedback.style.color = "#66ff66";
+        } else {
+          feedback.textContent = "❌ Not quite. Hint: It's Km / Vmax.";
+          feedback.style.color = "#ff6666";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
