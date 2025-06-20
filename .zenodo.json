@@ -1,0 +1,24 @@
+{
+  "title": "Hanes-Woolf Simulator",
+  "creators": [
+    {
+      "name": "Price, Claire L.",
+      "affiliation": "Swansea University",
+      "orcid": "https://orcid.org/0000-0002-6045-4835"
+    },
+    {
+      "name": "Noble, J. Gareth",
+      "affiliation": "Swansea University"
+    },
+    {
+      "name": "Seeley, Aidan",
+      "affiliation": "Swansea University"
+    }
+  ],
+  "description": "An interactive visualisation tool for the Hanes-Woolf linear plot used in enzyme kinetics. Adjust Vmax and Km to explore their effects on slope and intercept. Designed for educational use in biochemistry and pharmacology.",
+  "license": "CC-BY-NC-4.0",
+  "keywords": ["enzyme kinetics", "Hanes-Woolf", "biochemistry", "visualisation", "Plotly", "education"],
+  "upload_type": "software",
+  "version": "1.0.0",
+  "publication_date": "2025-06-20"
+}
