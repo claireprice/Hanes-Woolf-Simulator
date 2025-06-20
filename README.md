@@ -26,6 +26,8 @@ An interactive, browser-based visualisation tool to explore the **Hanes-Woolf pl
 
 If you use this tool in teaching or publications, please credit the authors:
 
+Price, C. L., Noble, J. G., & Seeley, A. (2025). Hanes-Woolf Kinetics Simulator v1.0. Zenodo. https://doi.org/10.5281/zenodo.15707116
+
 
 ## Licence
 
